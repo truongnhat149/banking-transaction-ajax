@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Information</title>
+    <link rel="stylesheet" href="/assets/css/bootstrap-5.1.3-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="/assets/fontawesome-free-6.0.0-beta2-web/css/all.css">
+    <link rel="stylesheet" href="/assets/css/list_customers.css">
+</head>
+<body>
+
+<div class="container">
+    <div id="header">
+        <table>
+            <tr>
+                <td style="width: 60%;"><h1 style="color: white">List of customers</h1></td>
+                <td style="width: 40%;">
+                    <button type="button" class="btn btn-outline-light"
+                            onclick="window.location.href='/history-transfers'">
+                        <i class="fa fa-history"></i>
+                        <span> Transfer money information</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-light" data-bs-toggle="modal"
+                            data-bs-target="#modalCreate">
+                        <i class="far fa-plus-square"></i>
+                        <span>Add New Customer</span>
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <!--    <div>-->
+    <!--        <a th:href="@{'/customers'(page=${customers.number - 1})}" th:if="${customers.hasPrevious()}">Previous</a>-->
+    <!--        <span th:text="${customers.number + 1}"></span>/<span th:text="${customers.totalPages}"></span>-->
+    <!--        <a th:href="@{'/customers'(page=${customers.number + 1})}" th:if="${customers.hasNext()}">Next</a>-->
+    <!--    </div>-->
+    <div id="main">
+        <table class="table table-striped table table-hover">
+            <thead>
+            <tr id="head-table">
+                <th>#</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Balance</th>
+                <th colspan="5">Action</th>
+            </tr>
+            </thead>
+
+            <tbody id="showListCustomers">
+            <th:block th:each="customer ,iterStat : ${customers}">
+                <tr role="row" th:class="${iterStat.odd}? 'odd':'even'">
+                    <td th:text="${customer.id}"></td>
+                    <td th:text="${customer.fullName}"></td>
+                    <td th:text="${customer.email}"></td>
+                    <td th:text="${customer.phone}"></td>
+                    <td th:text="${customer.address}"></td>
+                    <td th:text="${customer.balance}" style="text-align: right"></td>
+                    <td>
+                        <button type="button" class="btn btn-outline-secondary btn-edit"
+                                data-toggle="tooltip" data-placement="top" title="Edit"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEdit"
+                                th:data-id="${customer.id}"
+                        >
+                            <i class="far fa-edit"></i>
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-outline-success btn-deposit btn-deposit"
+                                data-toggle="tooltip" data-placement="top" title="Desposit"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalDeposit"
+                                th:data-id="${customer.id}"><i class="far fa-plus-square"></i>
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-outline-warning btn-withdraw"
+                                data-toggle="tooltip" data-placement="top" title="Withdraw"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalWithdraw"
+                                th:data-id="${customer.id}"><i class="fas fa-minus"></i></button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-outline-primary"
+                                data-toggle="tooltip" data-placement="top" title="Transfer"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalTransfer"
+                                th:data-id="${customer.id}"><i class="fas fa-exchange-alt"></i></button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-outline-danger"
+                                data-toggle="tooltip" data-placement="top" title="Suspended"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalDelete"
+                                th:data-id="${customer.id}"><i class="fas fa-ban"></i>
+                        </button>
+                    </td>
+                </tr>
+            </th:block>
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <!-- Modal Create -->
+    <div class="modal fade" id="modalCreate" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabelCustomer" style="font-weight: bold;">Create
+                        customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-alert-danger hide"></div>
+                    <form id="frmCreateCustomer">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="fullName" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="fullName">
+
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email">
+                            </div>
+
+
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="text" class="form-control" id="phone">
+
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="address" class="form-label">Address</label>
+                                <input type="text" class="form-control" id="address">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-info btn-create">
+                        <i class="far fa-plus-square"></i>
+                        Create Customer
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit -->
+    <div class="modal fade" id="modalEdit" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabelEdit">Customer information</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="modal-alert-danger hide"></div>
+                    <form id="frmUpdateCustomer">
+                        <div class="row">
+                            <input type="hidden" id="idUp">
+                            <div class="col-md-6">
+                                <label for="fullNameUp" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="fullNameUp">
+
+                            </div>
+                            <div class="col-md-6">
+                                <label for="emailUp" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="emailUp">
+                            </div>
+
+
+                            <div class="col-md-6">
+                                <label for="phoneUp" class="form-label">Phone</label>
+                                <input type="text" class="form-control" id="phoneUp">
+
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="addressUp" class="form-label">Address</label>
+                                <input type="text" class="form-control" id="addressUp">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-info btn-update">
+                        <i class="far fa-edit"></i>
+                        Update Customer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Delete -->
+    <div class="modal fade" id="modalDelete" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabelDelete">Delete customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="idDelete">
+                    <div style="text-align: center;">
+                        <img src="/image/warming.svg" alt="waiting">
+                        <h3>Are you sure delete customer !</h3>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-outline-primary" data-bs-dismiss="modal"
+                            onclick="applyDelete()">Yes, delete it !
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Cancle</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Deposit -->
+    <div class="modal fade" id="modalDeposit" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabelDeposit">Deposit money into customer's account
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-alert-danger hide"></div>
+                    <form>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="customerIdCD" class="form-label">Customer ID</label>
+                                <input type="text" class="form-control" name="customerIdCD" id="customerIdCD"
+                                       readonly>
+
+                            </div>
+                            <div class="col-md-6">
+                                <label for="fullNameCD" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" name="fullNameCD" id="fullNameCD"
+                                       readonly>
+                            </div>
+
+
+                            <div class="col-md-6">
+                                <label for="currentBalanceCD" class="form-label">Current balance (VND)</label>
+                                <input type="text" class="form-control" name="currentBalanceCD" id="currentBalanceCD"
+                                       readonly>
+
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="transactionAmountCD" class="form-label num-space">Transaction Amount
+                                    (VND)</label>
+                                <input type="text" class="form-control num-space" name="transactionAmountCD"
+                                       id="transactionAmountCD">
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-info" data-bs-dismiss="modal">
+                        <i class="far fa-plus-square"></i>
+                        Deposist
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal Withdraw -->
+    <div class="modal fade" id="modalWithdraw" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabelWithdraw">Withdraw money into customer's account
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="">
+                    <div class="modal-body">
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="customerIdCW" class="form-label">Customer ID</label>
+                                <input type="text" class="form-control" name="customerIdCW" id="customerIdCW"
+                                       readonly>
+
+                            </div>
+                            <div class="col-md-6">
+                                <label for="fullNameCW" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" name="fullNameCW" id="fullNameCW"
+                                       readonly>
+                            </div>
+
+
+                            <div class="col-md-6">
+                                <label for="currentBalanceCW" class="form-label">Current balance (VND)</label>
+                                <input type="text" class="form-control" name="currentBalanceCW" id="currentBalanceCW"
+                                       readonly>
+
+                            </div>
+                            <div class="col-md-6">
+                                <label for="transactionAmountCW" class="form-label">Transaction Amount (VND)</label>
+                                <input type="text" class="form-control" name="transactionAmountCW"
+                                       id="transactionAmountCW">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-outline-warning" data-bs-dismiss="modal"
+                                onclick="">
+                            <i class="fas fa-minus"></i>
+                            Withdraw
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Transfer -->
+    <div class="modal fade" id="modalTransfer" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabelTransfer">Withdraw money into customer's account
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="senderID" class="form-label">Sender ID</label>
+                            <input type="text" class="form-control" name="senderID" id="senderID"
+                                   readonly>
+
+                        </div>
+                        <div class="col-md-4">
+                            <label for="senderName" class="form-label">Sender Name</label>
+                            <input type="text" class="form-control" name="senderName" id="senderName"
+                                   readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="emailSender" class="form-label">Email</label>
+                            <input type="text" class="form-control" name="emailSender" id="emailSender"
+                                   readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="senderBalance" class="form-label">Sender balance (VND)</label>
+                            <input type="text" class="form-control" name="senderBalance" id="senderBalance" readonly>
+
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="recipient" class="form-label">Recipient Name</label>
+                            <select class="form-select form-select-lg mb-3" id="recipient" name="recipient">
+                                <option value="">Recipient Name</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="transferAmount" class="form-label">Transfer Amount (VND)</label>
+                            <input type="text" class="form-control" name="transferAmount" id="transferAmount">
+
+                        </div>
+                        <div class="col-md-4">
+                            <label for="fees" class="form-label">Fees(%)</label>
+                            <input type="text" class="form-control" name="fees" id="fees" value="10"
+                                   readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="totalTransactionAmount" class="form-label">Total amount of transaction</label>
+                            <input type="text" class="form-control" name="totalTransactionAmount"
+                                   id="totalTransactionAmount"
+                                   readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal"
+                            onclick="">
+                        <i class="fas fa-exchange-alt"></i>
+                        Transfer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/assets/jQuery/jquery.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+<script src="/assets/bootstrap-footer-15/bootstrap-footer-15/js/main.js"></script>
+<script src="/assets/js_banking/customer.js"></script>
+
+</body>
+</html>
