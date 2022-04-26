@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>List of customers</title>
+    <th:block th:insert="/layout/header :: header" />
+</head>
+<body>
+<div class="container">
+    <div class="table-title">
+        <div class="row">
+            <div class="col-sm-5">
+                <h1>List of customers</h1>
+            </div>
+            <div class="col-sm-7">
+                <button type="button" class="btn btn-outline-light" data-bs-toggle="modal"
+                        data-bs-target="#createModal">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Add New Customer</span>
+                </button>
+                <a href="/transfers" class="btn btn-outline-light">
+                    <i class="fa fa-history" aria-hidden="true"></i>
+                    <span>Transfer money Information</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div>
+        <table class="table table-hover table-borderless">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>phone</th>
+                <th>Address</th>
+                <th>Balance</th>
+                <th colspan="5" class="text-center">Action</th>
+            </tr>
+            </thead>
+            <tbody id="tbCustomer">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create Modal -->
+<th:block th:insert="/customer/modalCreate :: modal-create" />
+
+<!-- Update Modal -->
+<th:block th:insert="/customer/modalUpdate :: modal-update" />
+
+<!-- Deposit Modal -->
+<th:block th:insert="/customer/modalDeposit :: modal-deposit" />
+
+<!-- Withdraw Modal -->
+<th:block th:insert="/customer/modalWithdraw :: modal-withdraw" />
+
+<!-- Transfer Modal -->
+<th:block th:insert="/customer/modalTransfer :: modal-transfer" />
+
+<th:block th:insert="/customer/list_customers :: list-customers" />
+
+<th:block th:insert="/customer/temp_option :: temp-option" />
+
+
+<th:block th:insert="/layout/script :: script" />
+<script src="/assets/js/app.js"></script>
+
+<script>
+
+    let customer = new Customer();
+
+    let sender = new Sender();
+
+    let recipient = new Recipient();
+
+    let deposit = new Deposit();
+
+    let withdraw = new Withdraw();
+
+    let transfer = new Transfer();
+
+
+    let tempCustomer = $.validator.format($.trim($("#tempCustomer").val()));
+    let tempOption = $.validator.format($.trim($("#tempOption").val()));
+
+    let addRow = () => {
+        $("#tbCustomer").prepend($(tempCustomer(customer.id, customer.fullName, customer.email, customer.phone, customer.address, customer.balance)));
+    }
+
+    let addRowOption = (element, id, name) => {
+        $(element).append($(tempOption(id, name)));
+    }
+
+    function handlerShowGroupModal() {
+        handlerShowUpdateModal();
+
+        handlerShowDepositModal();
+
+        handlerShowWithdrawModal();
+
+        handlerShowTransferModal();
+
+        handlerShowConfirmSuspend();
+    }
+
+    function handlerShowUpdateModal() {
+        let btnUpdate = $(".btn-update");
+
+        btnUpdate.on("click", function () {
+            let id = $(this).data("id");
+
+            findById(id).then(function () {
+                $("#fullNameUp").val(customer.fullName);
+                $("#emailUp").val(customer.email);
+                $("#phoneUp").val(customer.phone);
+                $("#addressUp").val(customer.address);
+
+                $("#updateModal").modal("show");
+            }).catch(function () {
+                alert("Customer not found!");
+            });
+        });
+    }
+
+    function handlerShowDepositModal() {
+        let btnDeposit = $(".btn-deposit");
+
+        btnDeposit.on("click", function () {
+
+            let id = $(this).data("id");
+
+            findById(id).then(function () {
+                $("#customerIdDep").val(customer.id);
+                $("#fullNameDep").val(customer.fullName);
+                $("#balanceDep").val(customer.balance);
+
+                $("#depositModal").modal("show");
+            }).catch(function () {
+                alert("Customer not found!");
+            });
+        })
+    }
+
+    function handlerShowWithdrawModal() {
+        let btnWithdraw = $(".btn-withdraw");
+
+        btnWithdraw.on("click", function () {
+            let id = $(this).data("id");
+
+            findById(id).then(function () {
+                $("#customerIdWd").val(customer.id);
+                $("#fullNameWd").val(customer.fullName);
+                $("#balanceWd").val(customer.balance);
+
+                $("#withdrawModal").modal("show");
+            }).catch(function () {
+                alert("Customer not found!");
+            });
+        })
+    }
+
+    function handlerShowTransferModal() {
+        let btnTransfer = $(".btn-transfer");
+
+        btnTransfer.on("click", function () {
+            let id = $(this).data("id");
+
+            findById(id).then(function () {
+                sender = customer;
+                $("#senderIdTrf").val(sender.id);
+                $("#senderNameTrf").val(sender.fullName);
+                $("#emailTrf").val(sender.email);
+                $("#balanceTrf").val(sender.balance);
+
+                drawListRecipients(sender.id);
+
+                $("#transferModal").modal("show");
+            }).catch(function () {
+                alert("Sender not found!");
+            });
+        })
+    }
+
+    function handlerShowConfirmSuspend() {
+
+        $(".btn-delete").on("click", function () {
+            App.SweetAlert.ShowConfirmSuspend().then(result => {
+                if (result.isConfirmed) {
+                    let id = $(this).data('id');
+
+                    findById(id).then(function () {
+
+                        customer.deleted = true;
+
+                        doSuspend(id).then(function () {
+                            App.SweetAlert.showSuccessAlert('Suspended successfully');
+
+                            $("#tr_" + id).remove();
+                        })
+                    })
+                }
+            })
+        })
+    }
+
+    function findById(id) {
+        return $.ajax({
+            headers: {
+                "Content": "application/json",
+                "Accept": "application/json"
+            },
+            url: "http://localhost:8080/api/customers/" + id,
+            success: function (data) {
+                customer = data;
+            },
+            error: function () {
+
+            }
+        })
+    }
+
+    function drawListRecipients(senderId) {
+        $.ajax({
+            url: "http://localhost:8080/api/customers",
+            success: function (recipients) {
+                $("#recipientIdTrf").empty();
+
+                recipients.forEach(item => {
+                    if (item.id !== senderId) {
+                        addRowOption("#recipientIdTrf", item.id, item.fullName);
+                    }
+                });
+            },
+            error: function () {
+
+            }
+        })
+    }
+
+    function loadCustomers() {
+        return $.ajax({
+            headers: {
+                "Content": "application/json",
+                "Accept": "application/json"
+            },
+            url: "http://localhost:8080/api/customers",
+            success: function (data) {
+                data.forEach(item => {
+                    // drawListCustomers(item);
+                    customer = item;
+                    addRow();
+                });
+            }
+        })
+    }
+
+    function doCreate() {
+        customer.id = 0;
+        customer.fullName = $("#fullName").val();
+        customer.email = $("#email").val();
+        customer.phone = $("#phone").val();
+        customer.address = $("#address").val();
+        customer.balance = 0;
+
+        $.ajax({
+            type: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            url: "http://localhost:8080/api/customers/create",
+            data: JSON.stringify(customer)
+        })
+        .done(function (data) {
+            customer = data;
+            addRow();
+
+            $("#createModal").modal("hide");
+
+            handlerShowGroupModal();
+        }).fail(function (jqXHR) {
+
+        })
+    }
+
+    function doUpdate() {
+
+        customer.fullName = $("#fullNameUp").val();
+        customer.email = $("#emailUp").val();
+        customer.phone = $("#phoneUp").val();
+        customer.address = $("#addressUp").val();
+
+        $.ajax({
+            type: "PUT",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            url: "http://localhost:8080/api/customers/" + customer.id,
+            data: JSON.stringify(customer),
+            success: function(data) {
+                let str = `
+                        <tr id="tr_${data.id}">
+                            <td>${data.id}</td>
+                            <td>${data.fullName}</td>
+                            <td>${data.email}</td>
+                            <td>${data.phone}</td>
+                            <td>${data.address}</td>
+                            <td>${data.balance}</td>
+                            <td>
+                                <button type="button" data-id="${data.id}" data-full-name="${data.fullName}" class="btn btn-outline-secondary btn-update">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-outline-success btn-deposit" data-id="${data.id}">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-outline-warning">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-outline-primary">
+                                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-outline-danger">
+                                    <i class="fa-solid fa-ban"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+
+                let currentRow = $("#tr_" + data.id);
+                currentRow.replaceWith(str);
+
+                $("#updateModal").modal("hide");
+
+                handlerShowGroupModal();
+            }
+        })
+    }
+
+    function doDeposit() {
+
+        deposit.customerId = customer.id;
+        deposit.transactionAmount = +$("#transactionAmountDep").val();
+
+        $.ajax({
+            type: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            url: "http://localhost:8080/api/transactions/deposit/" + customer.id,
+            data: JSON.stringify(deposit)
+        })
+        .done(function (data) {
+            customer = data;
+            let currentRow = $("#tr_" + customer.id);
+            let updatedRow = $(tempCustomer(customer.id, customer.fullName, customer.email, customer.phone, customer.address, customer.balance));
+            currentRow.replaceWith(updatedRow);
+
+            $("#depositModal").modal("hide");
+
+            App.SweetAlert.showSuccessAlert('Successful deposit transaction');
+
+            handlerShowGroupModal();
+        })
+        .fail(function (jqXHR) {
+            console.log(jqXHR)
+            let err = jqXHR.responseText;
+            let str = '';
+
+            if (jqXHR.responseJSON) {
+                if (jqXHR.responseJSON.message) {
+                    str += `<label id="message-error" class="error" for="message">${jqXHR.responseJSON.message}</label>`;
+                } else {
+                    $.each(jqXHR.responseJSON, function (key, value) {
+                        str += `<label id="${key}Dep-error" class="error" for="${key}Dep">${value}</label>`;
+                        $("#" + key + "Dep").addClass("error");
+                    });
+                }
+            }
+            else {
+                str = `<label class="error">${err}</label>`;
+            }
+
+            $("#depositModal .modal-alert-danger").html(str).removeClass("hide").addClass("show");
+        });
+    }
+
+    function doWithdraw() {
+
+        withdraw.customerId = customer.id;
+        withdraw.transactionAmount = +$("#transactionAmountWd").val();
+
+            $.ajax({
+                type: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                url: "http://localhost:8080/api/transactions/withdraw/" + customer.id,
+                data: JSON.stringify(withdraw),
+            })
+                .done(function (data) {
+
+                customer = data;
+
+                let currentRow = $("#tr_" + customer.id);
+                let updateRow = $(tempCustomer(customer.id, customer.fullName, customer.email, customer.phone, customer.address, customer.balance));
+
+                currentRow.replaceWith(updateRow);
+
+
+                $("#withdrawModal").modal("hide");
+
+                App.SweetAlert.showSuccessAlert('Successful withdraw transaction');
+
+                handlerShowGroupModal();
+
+            })
+                .fail(function (jqXHR) {
+
+                    let err = jqXHR.responseText;
+                    let str = '';
+
+                    if (jqXHR.responseJSON) {
+                        if (jqXHR.responseJSON.message) {
+                            str += `<label id="message-error" class="error" for="message">${jqXHR.responseJSON.message}</label>`;
+                        } else {
+                            $.each(jqXHR.responseJSON, function (key, value) {
+                                str += `<label id="${key}Wd-error" class="error" for="${key}Wd">${value}</label>`;
+                                $("#" + key + "Wd").addClass("error");
+                            });
+                        }
+                    }
+                    else {
+                        str = `<label class="error">${err}</label>`;
+                    }
+
+                    $("#depositModal .modal-alert-danger").html(str).removeClass("hide").addClass("show");
+            });
+    }
+
+    function doTransfer(transfer) {
+        return $.ajax({
+            type: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            url: "http://localhost:8080/transfers",
+            data: JSON.stringify(transfer),
+            success: function() {
+
+            }
+        });
+    }
+
+    function doSuspend(id) {
+        return $.ajax({
+            type: "PUT",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            url: "http://localhost:8080/api/customers/" + id,
+            data: JSON.stringify(customer)
+        }).done(function () {
+
+        }).fail(function () {
+
+        });
+    }
+
+    function updateSender(sender) {
+        return $.ajax({
+            type: "PUT",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            url: "http://localhost:8080/api/customers/" + sender.id,
+            data: JSON.stringify(sender),
+            success: function(data) {
+                let str = `
+                        <tr id="tr_${data.id}">
+                            <td>${data.id}</td>
+                            <td>${data.fullName}</td>
+                            <td>${data.email}</td>
+                            <td>${data.phone}</td>
+                            <td>${data.address}</td>
+                            <td>${data.balance}</td>
+                            <td>
+                                <button type="button" class="btn btn-outline-secondary btn-update" data-id="${data.id}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-outline-success btn-deposit" data-id="${data.id}">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-outline-warning btn-withdraw" data-id="${data.id}">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-outline-primary btn-transfer" data-id="${data.id}">
+                                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-outline-danger">
+                                    <i class="fa-solid fa-ban"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+
+                let currentRow = $("#tr_" + data.id);
+                currentRow.replaceWith(str);
+            }
+        });
+    }
+
+    function updateRecipient(recipient) {
+        return $.ajax({
+            type: "PUT",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            url: "http://localhost:8080/api/customers/" + recipient.id,
+            data: JSON.stringify(recipient),
+            success: function(data) {
+                let str = `
+                        <tr id="tr_${data.id}">
+                            <td>${data.id}</td>
+                            <td>${data.fullName}</td>
+                            <td>${data.email}</td>
+                            <td>${data.phone}</td>
+                            <td>${data.address}</td>
+                            <td>${data.balance}</td>
+                            <td>
+                                <button type="button" class="btn btn-outline-secondary btn-update" data-id="${data.id}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-outline-success btn-deposit" data-id="${data.id}">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-outline-warning btn-withdraw" data-id="${data.id}">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-outline-primary btn-transfer" data-id="${data.id}">
+                                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-outline-danger">
+                                    <i class="fa-solid fa-ban"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+
+                let currentRow = $("#tr_" + data.id);
+                currentRow.replaceWith(str);
+            }
+        });
+    }
+
+    function handlerTransfer() {
+        let transferAmount = +$("#transferAmountTrf").val();
+        let fees = 10;
+        let feesAmount = transferAmount / fees;
+        let transactionAmount = transferAmount + feesAmount;
+
+        if (transactionAmount > sender.balance) {
+            alert("Customer balance not enough money to transfer");
+        }
+        else {
+            sender.balance -= transactionAmount;
+
+            updateSender(sender).then(function () {
+                let recipientId = $("#recipientIdTrf").val();
+
+                findById(recipientId).then(function () {
+                    recipient = customer;
+
+                    recipient.balance += transferAmount;
+
+                    updateRecipient(recipient).then(function () {
+                        transfer.senderId = sender.id;
+                        transfer.recipientId = recipient.id;
+                        transfer.transferAmount = transferAmount;
+                        transfer.fees = 10;
+                        transfer.feesAmount = feesAmount;
+                        transfer.transactionAmount = transactionAmount;
+
+                        doTransfer(transfer).then(function () {
+                            $("#transferModal").modal("hide");
+
+                            App.IziToast.showSuccessAlert('Successful transfer transaction');
+
+                            handlerShowGroupModal();
+                        })
+                    })
+                });
+            })
+        }
+    }
+
+    $("#btnCreate").on("click", function () {
+        doCreate();
+    });
+
+    $("#btnUpdate").on("click", function () {
+        doUpdate();
+    });
+
+    $("#btnDepositMoney").on("click", function () {
+        $("#frmDeposit").submit();
+    });
+
+    $("#btnWithdrawMoney").on("click", function () {
+        $("#frmWithdraw").submit();
+    });
+
+    $("#btnTransferMoney").on("click", function () {
+        $("#frmTransfer").submit();
+    });
+
+    $("#transferAmountTrf").on("input", function () {
+        let transferAmount = +$(this).val();
+        let fees = 10;
+        let feesAmount = transferAmount / fees;
+        let transactionAmount = transferAmount + feesAmount;
+
+        $("#transactionAmountTrf").val(transactionAmount);
+    })
+
+    function resetModal(formElement) {
+        $(formElement)[0].reset();
+        $(formElement).validate().resetForm();
+        $(formElement + ' input.error').removeClass("error");
+    }
+
+    function closeModal(modal, formElement) {
+        $(modal).on("hidden.bs.modal", function () {
+            $(modal + ' .modal-alert-danger').empty().removeClass('show').addClass('hide');
+            resetModal(formElement);
+        });
+    }
+
+    closeModal("#createModal", '#frmCreate');
+    closeModal("#depositModal", '#frmDeposit');
+    closeModal("#withdrawModal", '#frmWithdraw');
+    closeModal("#transferModal", '#frmTransfer');
+
+
+    $("#frmDeposit").validate({
+        rules: {
+            transactionAmountDep: {
+                required: true,
+                min: 50,
+                max: 10000000000
+            }
+        },
+        messages: {
+            transactionAmountDep: {
+                required: "Transaction amount is required",
+                min: "Transaction amount min is 50",
+                max: "Transaction amount max is 10.000.000.000"
+            }
+        },
+        errorLabelContainer: "#depositModal .modal-alert-danger",
+        errorPlacement: function (error, element) {
+            error.appendTo("#depositModal .modal-alert-danger");
+        },
+        showErrors: function(errorMap, errorList) {
+            if (this.numberOfInvalids() > 0) {
+                $("#depositModal .modal-alert-danger").removeClass("hide").addClass("show");
+            } else {
+                $("#depositModal .modal-alert-danger").removeClass("show").addClass("hide").empty();
+                $("#frmDeposit input.error").removeClass("error");
+            }
+            this.defaultShowErrors();
+        },
+        submitHandler: function() {
+            doDeposit();
+        }
+    });
+
+    $("#frmWithdraw").validate({
+        rules: {
+            transactionAmountWd: {
+                required: true,
+                min: 50,
+                max: 10000000000
+            }
+        },
+        messages: {
+            transactionAmountWd: {
+                required: "Transaction amount is required",
+                min: "Transaction amount min is 50",
+                max: "Transaction amount max is 10.000.000.000"
+            }
+        },
+        errorLabelContainer: "#withdrawModal .modal-alert-danger",
+        errorPlacement: function (error, element) {
+            error.appendTo("#withdrawModal .modal-alert-danger");
+        },
+        showErrors: function(errorMap, errorList) {
+            if (this.numberOfInvalids() > 0) {
+                $("#withdrawModal .modal-alert-danger").removeClass("hide").addClass("show");
+            } else {
+                $("#withdrawModal .modal-alert-danger").removeClass("show").addClass("hide").empty();
+                $("#frmWithdraw input.error").removeClass("error");
+            }
+            this.defaultShowErrors();
+        },
+        submitHandler: function() {
+            doWithdraw();
+        }
+    });
+
+
+    $("#frmTransfer").validate({
+        rules: {
+            transferAmountTrf: {
+                required: true,
+                min: 50,
+                max: 10000000000
+            }
+        },
+        messages: {
+            transferAmountTrf: {
+                required: "Transfer amount is required",
+                min: "Transfer amount min is {0}",
+                max: "Transfer amount max is 10.000.000.000"
+            }
+        },
+        errorLabelContainer: "#transferModal .modal-alert-danger",
+        errorPlacement: function (error, element) {
+            error.appendTo("#transferModal .modal-alert-danger");
+        },
+        showErrors: function(errorMap, errorList) {
+            if (this.numberOfInvalids() > 0) {
+                $("#transferModal .modal-alert-danger").removeClass("hide").addClass("show");
+            } else {
+                $("#transferModal .modal-alert-danger").removeClass("show").addClass("hide").empty();
+                $("#frmTransfer input.error").removeClass("error");
+            }
+            this.defaultShowErrors();
+        },
+        submitHandler: function() {
+            handlerTransfer();
+        }
+    });
+
+
+    loadCustomers().then(function () {
+        handlerShowGroupModal();
+    });
+
+</script>
+
+</body>
+</html>
