@@ -26,7 +26,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     )
     List<CustomerDTO> findAllCustomersIsActive();
 
-
     @Query("SELECT new com.cg.model.dto.CustomerDTO(" +
             "c.id, " +
             "c.fullName, " +
@@ -40,4 +39,13 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
             "AND c.id = :id"
     )
     Optional<CustomerDTO> findCustomerDTOById(@Param("id") Long id);
+
+
+    List<Customer> findCustomersByDeletedIsFalse();
+    
+//    List<CustomerDTO> save(CustomerDTO customerDTO);
+
+//    void save(CustomerDTO customerDTO);
+
+    void save(Optional<CustomerDTO> customer);
 }

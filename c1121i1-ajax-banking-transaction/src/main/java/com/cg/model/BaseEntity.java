@@ -17,8 +17,8 @@ import java.util.Date;
 //@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 
-    @Column(columnDefinition = "boolean default false")
-    private boolean deleted;
+    @Column(columnDefinition = "boolean default false", updatable = false)
+    private boolean deleted = false;
 
     @CreationTimestamp
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss Z", timezone = "Asia/Ho_Chi_Minh")

@@ -19,5 +19,4 @@ public class CustomerDTO {
     private String phone;
     private String address;
     private BigDecimal balance;
-
 }

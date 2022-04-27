@@ -36,6 +36,7 @@ public class Customer extends BaseEntity {
     @Column(updatable = true)
     private BigDecimal balance;
 
+
     public Customer(Long id, String fullName, String email, String phone, String address, BigDecimal balance) {
         this.id = id;
         this.fullName = fullName;
@@ -59,5 +60,21 @@ public class Customer extends BaseEntity {
 
     public BigDecimal getBalance(BigDecimal transactionAmount) {
         return transactionAmount;
+    }
+
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "id=" + id +
+                ", fullName='" + fullName + '\'' +
+                ", email='" + email + '\'' +
+                ", phone='" + phone + '\'' +
+                ", address='" + address + '\'' +
+                ", balance=" + balance +
+                ", deposits=" + deposits +
+                ", withdraws=" + withdraws +
+                ", sender=" + sender +
+                ", recipient=" + recipient +
+                '}';
     }
 }

@@ -48,8 +48,21 @@ public class CustomerServiceImpl implements ICustomerService {
         return customerRepository.findAllCustomersIsActive();
     }
 
+
+    @Override
+    public List<Customer> findCustomersByDeletedIsFalse() {
+        return customerRepository.findCustomersByDeletedIsFalse();
+    }
+
     @Override
     public Optional<CustomerDTO> findCustomerDTOById(Long id) {
         return customerRepository.findCustomerDTOById(id);
+    }
+
+
+
+    @Override
+    public void save(Optional<CustomerDTO> customerDTO) {
+        customerRepository.save(customerDTO);
     }
 }

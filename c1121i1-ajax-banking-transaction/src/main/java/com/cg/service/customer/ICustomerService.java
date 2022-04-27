@@ -11,5 +11,9 @@ public interface ICustomerService extends IGeneralService<Customer> {
 
     List<CustomerDTO> findAllCustomersIsActive();
 
+    List<Customer> findCustomersByDeletedIsFalse();
+
     Optional<CustomerDTO> findCustomerDTOById(Long id);
+
+    void save(Optional<CustomerDTO> customerDTO);
 }

@@ -445,23 +445,8 @@
                         str = `<label class="error">${err}</label>`;
                     }
 
-                    $("#depositModal .modal-alert-danger").html(str).removeClass("hide").addClass("show");
+                    $("#withdrawModal .modal-alert-danger").html(str).removeClass("hide").addClass("show");
             });
-    }
-
-    function doTransfer(transfer) {
-        return $.ajax({
-            type: "POST",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            url: "http://localhost:8080/transfers",
-            data: JSON.stringify(transfer),
-            success: function() {
-
-            }
-        });
     }
 
     function doSuspend(id) {
@@ -477,6 +462,25 @@
 
         }).fail(function () {
 
+        });
+    }
+
+    function doTransfer(transfer) {
+        return $.ajax({
+            type: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            url: "http://localhost:8080/api/transactions/transfer" ,
+            data: JSON.stringify(transfer),
+            success: function() {
+                    $("#transferModal").modal("hide");
+
+                    App.IziToast.showSuccessAlert('Successful transfer transaction');
+
+                    handlerShowGroupModal();
+            }
         });
     }
 
@@ -584,47 +588,46 @@
         });
     }
 
-    function handlerTransfer() {
-        let transferAmount = +$("#transferAmountTrf").val();
-        let fees = 10;
-        let feesAmount = transferAmount / fees;
-        let transactionAmount = transferAmount + feesAmount;
-
-        if (transactionAmount > sender.balance) {
-            alert("Customer balance not enough money to transfer");
-        }
-        else {
-            sender.balance -= transactionAmount;
-
-            updateSender(sender).then(function () {
-                let recipientId = $("#recipientIdTrf").val();
-
-                findById(recipientId).then(function () {
-                    recipient = customer;
-
-                    recipient.balance += transferAmount;
-
-                    updateRecipient(recipient).then(function () {
-                        transfer.senderId = sender.id;
-                        transfer.recipientId = recipient.id;
-                        transfer.transferAmount = transferAmount;
-                        transfer.fees = 10;
-                        transfer.feesAmount = feesAmount;
-                        transfer.transactionAmount = transactionAmount;
-
-                        doTransfer(transfer).then(function () {
-                            $("#transferModal").modal("hide");
-
-                            App.IziToast.showSuccessAlert('Successful transfer transaction');
-
-                            handlerShowGroupModal();
-                        })
-                    })
-                });
-            })
-        }
-    }
-
+    // function handlerTransfer() {
+    //     let transferAmount = +$("#transferAmountTrf").val();
+    //     let fees = 10;
+    //     let feesAmount = transferAmount / fees;
+    //     let transactionAmount = transferAmount + feesAmount;
+    //
+    //     if (transactionAmount > sender.balance) {
+    //         alert("Customer balance not enough money to transfer");
+    //     }
+    //     else {
+    //         sender.balance -= transactionAmount;
+    //
+    //         updateSender(sender).then(function () {
+    //             let recipientId = $("#recipientIdTrf").val();
+    //
+    //             findById(recipientId).then(function () {
+    //                 recipient = customer;
+    //
+    //                 recipient.balance += transferAmount;
+    //
+    //                 updateRecipient(recipient).then(function () {
+    //                     transfer.senderId = sender.id;
+    //                     transfer.recipientId = recipient.id;
+    //                     transfer.transferAmount = transferAmount;
+    //                     transfer.fees = 10;
+    //                     transfer.feesAmount = feesAmount;
+    //                     transfer.transactionAmount = transactionAmount;
+    //
+    //                     doTransfer(transfer).then(function () {
+    //                         $("#transferModal").modal("hide");
+    //
+    //                         App.IziToast.showSuccessAlert('Successful transfer transaction');
+    //
+    //                         handlerShowGroupModal();
+    //                     })
+    //                 })
+    //     })
+    // })
+    // }
+    //
     $("#btnCreate").on("click", function () {
         doCreate();
     });
@@ -769,7 +772,9 @@
             this.defaultShowErrors();
         },
         submitHandler: function() {
-            handlerTransfer();
+            // handlerTransfer();
+            doTransfer();
+
         }
     });
 

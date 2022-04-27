@@ -10,3 +10,6 @@
 - Bootstrap 5
 - Spring MVC
 - jQuery AJAX 
+
+# Version
+Banking Transaction AJAX refactor ver 2.0

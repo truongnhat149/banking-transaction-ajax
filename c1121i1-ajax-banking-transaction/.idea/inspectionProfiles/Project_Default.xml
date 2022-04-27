@@ -18,6 +18,8 @@
       </option>
       <option name="myCustomValuesEnabled" value="true" />
     </inspection_tool>
+    <inspection_tool class="MybatisXMapperXmlInspection" enabled="true" level="TYPO" enabled_by_default="true" />
     <inspection_tool class="OptionalGetWithoutIsPresent" enabled="true" level="TYPO" enabled_by_default="true" />
+    <inspection_tool class="RawUseOfParameterizedType" enabled="true" level="TYPO" enabled_by_default="true" />
   </profile>
 </component>

@@ -445,23 +445,8 @@
                         str = `<label class="error">${err}</label>`;
                     }
 
-                    $("#depositModal .modal-alert-danger").html(str).removeClass("hide").addClass("show");
+                    $("#withdrawModal .modal-alert-danger").html(str).removeClass("hide").addClass("show");
             });
-    }
-
-    function doTransfer(transfer) {
-        return $.ajax({
-            type: "POST",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            url: "http://localhost:8080/transfers",
-            data: JSON.stringify(transfer),
-            success: function() {
-
-            }
-        });
     }
 
     function doSuspend(id) {
@@ -477,6 +462,25 @@
 
         }).fail(function () {
 
+        });
+    }
+
+    function doTransfer(transfer) {
+        return $.ajax({
+            type: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            url: "http://localhost:8080/api/transactions/transfer" ,
+            data: JSON.stringify(transfer),
+            success: function() {
+                    $("#transferModal").modal("hide");
+
+                    App.IziToast.showSuccessAlert('Successful transfer transaction');
+
+                    handlerShowGroupModal();
+            }
         });
     }
 
@@ -620,9 +624,9 @@
                             handlerShowGroupModal();
                         })
                     })
-                });
-            })
-        }
+                    })
+                })
+            }
     }
 
     $("#btnCreate").on("click", function () {
@@ -770,6 +774,8 @@
         },
         submitHandler: function() {
             handlerTransfer();
+            doTransfer();
+
         }
     });
 
